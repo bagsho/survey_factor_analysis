@@ -1,0 +1,56 @@
+---
+title: 'Survey Results Factor Analysis'
+author: "[Orhan Aktaş](https://www.linkedin.com/in/orhanaktas/)"
+date: "10 December 2020"
+output:
+  html_document:
+    theme: flatly
+    df_print: paged
+  pdf_document: default
+  word_document: default
+   
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  #fig.width=12, 
+  #fig.height=8, 
+  #fig.path='Figs/',
+  echo=FALSE, 
+  message=FALSE, 
+  warning=FALSE)
+```
+
+```{r libraries}
+library(googlesheets4)
+library(tidyverse)
+library(reshape2)
+library(heatmaply)
+```
+
+
+```{r get_data, message=FALSE, warning=FALSE}
+
+
+gs4_deauth()
+link<-"https://docs.google.com/spreadsheets/d/1sXxCzr_EadTeXEK_KSMn5WMHI3UkAvF101pRmfK1yMA/edit?usp=sharing"
+data<-read_sheet(link)
+
+head(data)
+```
+
+```{r warning=FALSE}
+
+
+#png("high_res.png", width = 8, height = 8, units = 'in', res = 1600)
+#heatmap(as.matrix(data[3:ncol(data)]))
+matrix<-cor(data[3:81],data[3:81])
+heatmaply_cor(
+  matrix, 
+  showticklabels = c(F,F), 
+  margins = c(80,10),
+  label_format_fun = function(...) round(..., digits = 1))
+#dev.off()
+```
+
