@@ -1,0 +1,92 @@
+---
+title: 'sd_of_measures'
+author: "[Orhan Aktaş](https://www.linkedin.com/in/orhanaktas/)"
+date: "10 December 2020"
+output:
+  html_document:
+    theme: flatly
+    df_print: paged
+  pdf_document: default
+  word_document: default
+   
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  #fig.width=12, 
+  #fig.height=8, 
+  #fig.path='Figs/',
+  echo=FALSE, 
+  message=FALSE, 
+  warning=FALSE)
+```
+
+```{r libraries}
+library(googlesheets4)
+library(tidyverse)
+library(reshape2)
+library(heatmaply)
+library(psych)
+```
+
+
+```{r get_data, message=FALSE, warning=FALSE}
+gs4_deauth()
+link<-"https://docs.google.com/spreadsheets/d/1sXxCzr_EadTeXEK_KSMn5WMHI3UkAvF101pRmfK1yMA/edit?usp=sharing"
+data<-read_sheet(link)
+
+head(data)
+```
+
+```{r}
+describe(data[3:81]) %>% 
+  mutate(measure=colnames(data[3:81])) %>% 
+  ggplot()+
+  geom_col(mapping=aes(x=reorder(measure,sd),y=sd))+
+  theme(axis.text=element_text(size=5))+
+  coord_flip()
+```
+
+getting measures that has sd over 1
+
+```{r}
+
+
+
+```
+
+controversial_measures
+```{r}
+
+controversial_measures<-describe(data[3:81]) %>% 
+  arrange(desc(sd)) %>%  
+  filter(sd>1) %>% row.names()
+
+data[2:81] %>% 
+  pivot_longer(!Kurumunuz, names_to = "measure", values_to = "count") %>% 
+  filter(measure %in% controversial_measures) %>% 
+  ggplot()+
+  geom_jitter(mapping = aes(measure,count),width = 0.1,height = 0.1)+
+  theme(axis.text=element_text(size=5))+ 
+  scale_y_continuous(breaks=seq(1, 5, 1),limits = c(1,5)) +
+  coord_flip()
+```
+
+```{r}
+
+undisputed_measures<-describe(data[3:81]) %>% 
+  arrange(desc(sd)) %>%  
+  filter(sd<0.6) %>% row.names()
+
+data[2:81] %>% 
+  pivot_longer(!Kurumunuz, names_to = "measure", values_to = "count") %>% 
+  filter(measure %in% undisputed_measures) %>% 
+  ggplot()+
+  geom_jitter(mapping = aes(measure,count),width = 0.1,height = 0.1)+
+  theme(axis.text=element_text(size=5))+
+  scale_y_continuous(breaks=seq(1, 5, 1),limits = c(1,5)) +
+  coord_flip()
+
+```
+

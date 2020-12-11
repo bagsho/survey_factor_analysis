@@ -27,6 +27,7 @@ library(googlesheets4)
 library(tidyverse)
 library(reshape2)
 library(heatmaply)
+library(psych)
 ```
 
 
@@ -40,6 +41,11 @@ data<-read_sheet(link)
 head(data)
 ```
 
+# Sample Size and Sample to Variable Ratio
+Sample size is `r nrow(data)` and there are `r ncol(data)-2` number of measures in the data set. 
+
+
+
 create correlation matrix
 ```{r}
 matrix<-cor(data[3:81],data[3:81])
@@ -52,10 +58,20 @@ matrix %>%
   scale_x_continuous(name="correlation", breaks=seq(0, 1, 0.1),limits = c(0,1)) 
 ```
 
+the measures of factoring adequacy
+or
+whether the matrix is factorable
+
+[ref:](https://cran.r-project.org/web/packages/psych/psych.pdf)
+```{r}
+cortest.bartlett(matrix)
+KMO(matrix)
+```
+
 
 
 heatmap
-```{r warning=FALSE}
+```{r eval=FALSE, warning=FALSE, include=FALSE}
 
 
 #png("high_res.png", width = 8, height = 8, units = 'in', res = 1600)
