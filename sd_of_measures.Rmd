@@ -10,27 +10,28 @@ output:
   word_document: default
    
 ---
+# Introduction
+
+The purpose of this analysis is to investigate the standart deviations of survey results for each measure. A high sd might signal a debate on a measure and this might be a valuable insight from data.
 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
-  #fig.width=12, 
-  #fig.height=8, 
-  #fig.path='Figs/',
-  echo=FALSE, 
-  message=FALSE, 
-  warning=FALSE)
+	echo = TRUE,
+	message = FALSE,
+	warning = FALSE
+)
 ```
 
 ```{r libraries}
 library(googlesheets4)
 library(tidyverse)
 library(reshape2)
-library(heatmaply)
+library(plotly)
 library(psych)
 ```
 
-
+Lets import data from google speadsheet and take a look at data.
 ```{r get_data, message=FALSE, warning=FALSE}
 gs4_deauth()
 link<-"https://docs.google.com/spreadsheets/d/1sXxCzr_EadTeXEK_KSMn5WMHI3UkAvF101pRmfK1yMA/edit?usp=sharing"
@@ -39,6 +40,7 @@ data<-read_sheet(link)
 head(data)
 ```
 
+Then it is good to see the sd's in a bar chart. A horizontal bar chart ordered by decreasing sd's is useful to investigate measures. 
 ```{r}
 describe(data[3:81]) %>% 
   mutate(measure=colnames(data[3:81])) %>% 
@@ -48,15 +50,11 @@ describe(data[3:81]) %>%
   coord_flip()
 ```
 
-getting measures that has sd over 1
 
-```{r}
+# Controversial Measures
 
+Just analyze only the measures that has sd over 1. First see them in a boxplot.
 
-
-```
-
-controversial_measures
 ```{r}
 
 controversial_measures<-describe(data[3:81]) %>% 
@@ -67,11 +65,32 @@ data[2:81] %>%
   pivot_longer(!Kurumunuz, names_to = "measure", values_to = "count") %>% 
   filter(measure %in% controversial_measures) %>% 
   ggplot()+
+  geom_boxplot(
+    mapping = aes(measure,count,fill=measure),
+    show.legend = FALSE,
+    outlier.shape = 1)+
+  theme(axis.text=element_text(size=5))+ 
+  scale_y_continuous(breaks=seq(1, 5, 1),limits = c(1,5)) +
+  coord_flip()
+```
+
+Since boxplot doesn't mean much I prefer scatter plot with jittering.
+```{r}
+
+data[2:81] %>% 
+  pivot_longer(!Kurumunuz, names_to = "measure", values_to = "count") %>% 
+  filter(measure %in% controversial_measures) %>% 
+  ggplot()+
   geom_jitter(mapping = aes(measure,count),width = 0.1,height = 0.1)+
   theme(axis.text=element_text(size=5))+ 
   scale_y_continuous(breaks=seq(1, 5, 1),limits = c(1,5)) +
   coord_flip()
 ```
+
+It's very insightfull. You can see all the answers and their distrubition for each measure immediately just in a plot. 
+
+# Other Measures
+To understand how the answers differ, let's take a look at the situation with the measures with less bias.
 
 ```{r}
 
@@ -89,4 +108,39 @@ data[2:81] %>%
   coord_flip()
 
 ```
+
+Finally I'll look at the measures that has average sd's.
+```{r}
+
+other_measures<-describe(data[3:81]) %>% 
+  arrange(desc(sd)) %>%  
+  filter(sd>0.6 & sd<1) %>% row.names()
+
+data[2:81] %>% 
+  pivot_longer(!Kurumunuz, names_to = "measure", values_to = "count") %>% 
+  filter(measure %in% other_measures) %>% 
+  ggplot()+
+  geom_jitter(mapping = aes(measure,count),width = 0.1,height = 0.1)+
+  theme(axis.text=element_text(size=5))+
+  scale_y_continuous(breaks=seq(1, 5, 1),limits = c(1,5)) +
+  coord_flip()
+
+```
+
+# Relation between sd and mean
+After seeing all the distributions I have a doubt on the effect of last scale on sd. Now I'm looking to relation between mean and sd.
+```{r}
+p<-describe(data[3:81]) %>% 
+  mutate(measure=row.names(describe(data[3:81]))) %>% 
+  ggplot()+
+  geom_point(mapping = aes(x=mean,y=sd,group=measure))+
+  scale_x_continuous(breaks=seq(1, 5, 1),limits = c(1,5)) 
+fig<-ggplotly(p)
+fig
+````
+ As I doubted there is a negative correlation between mean and sd. When people think that one measure has importance they score 4 or 5 while in other situations their scores differ more. 
+
+
+
+
 
