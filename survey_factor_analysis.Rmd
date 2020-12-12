@@ -68,6 +68,24 @@ cortest.bartlett(matrix)
 KMO(matrix)
 ```
 
+determinant is zero so I tried to exclude some variables but it is still 0 after excluding 18 variables.
+```{r}
+# variables with most correlations over 0.7
+delete2<-matrix %>% 
+  melt %>%
+  filter(value<0.99 & value>0.7) %>% 
+  group_by(Var1) %>% 
+  summarise(n=n()) %>% 
+  arrange(desc(n)) %>% 
+  head(18) %>% 
+  extract(1) %>% 
+  t %>% 
+  as.character
+
+data2<-data %>% select(-any_of(delete2)) 
+matrix<-cor(data2[3:ncol(data2)],data2[3:ncol(data2)])
+det(matrix)
+```
 
 
 heatmap
