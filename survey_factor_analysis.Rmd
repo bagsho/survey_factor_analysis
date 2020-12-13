@@ -28,6 +28,7 @@ library(tidyverse)
 library(reshape2)
 library(heatmaply)
 library(psych)
+library(magrittr)
 ```
 
 
@@ -86,6 +87,31 @@ data2<-data %>% select(-any_of(delete2))
 matrix<-cor(data2[3:ncol(data2)],data2[3:ncol(data2)])
 det(matrix)
 ```
+
+factor analysis for x variables that has minimum average correlations
+```{r}
+# variables with most correlations over 0.7
+delete2<-matrix %>% 
+  melt %>%
+  filter(value<0.20) %>% 
+  group_by(Var1) %>% 
+  summarise(mean=mean(abs(value))) %>% 
+  arrange(mean) %>% 
+  head(20) %>% 
+  extract(1) %>% 
+  t %>% 
+  as.character
+
+data2<-data %>% select(all_of(delete2)) 
+matrix2<-cor(data2[1:ncol(data2)],data2[1:ncol(data2)])
+det(matrix2)
+#KMO(matrix2) 25 taneye sonuç veriyor.
+VSS.scree(matrix2, main = "scree plot")
+results<-factanal(data2, 4, rotation="varimax")
+table<-results$loadings[,1:4] %>% as_tibble() %>% mutate(measure=results$loadings[,1:4] %>% row.names) %>%  select(measure, everything())
+table %>% write_excel_csv("results.csv")
+```
+
 
 
 heatmap
