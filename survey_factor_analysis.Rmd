@@ -29,7 +29,8 @@ library(reshape2)
 library(heatmaply)
 library(psych)
 library(magrittr)
-library(ztable)
+library(formattable)
+library(DT)
 ```
 
 
@@ -111,11 +112,49 @@ VSS.scree(matrix2, main = "scree plot")
 results<-factanal(data2, 6, rotation="varimax")
 table<-results$loadings[,1:6] %>% as_tibble() %>% mutate(measure=results$loadings[,1:6] %>% row.names) %>%  select(measure, everything())
 #table %>% write_excel_csv("results_6.csv")
-table<-table %>% pivot_longer(!measure, names_to = "factor", values_to = "loading") %>% group_by(measure) %>% filter(loading==max(loading)) %>% select(factor,measure,loading) %>% arrange(factor,desc(loading))
+table<-table %>% pivot_longer(!measure, names_to = "factor", values_to = "loading") %>% group_by(measure) %>% filter(loading==max(loading)) %>% select(measure,factor,loading) %>% arrange(factor,desc(loading))
 table
 #burada tablonun exceldeki ya da benzeri bir çıktı haline getirilmesi gerekiyor.
 ```
 
+table format
+```{r}
+
+formattable(table, 
+            align =c("l","c","c"), 
+            list(`factor`= formatter("span",style = x ~ style(
+              font.weight = "bold", 
+              color = 	ifelse(x =="Factor1", "red",
+			      	            ifelse(x== "Factor2", "green",
+				                    ifelse(x== "Factor3", "blue",
+				                      ifelse(x== "Factor4", "yellow",
+				                        ifelse(x== "Factor5","orange",
+				                          ifelse(x== "Factor6", "purple", "black")
+				                        )
+				                      )
+				                    )
+			      	            )
+                  )
+                )
+              )
+            )
+)
+```
+
+with DT formatStyle function in DT package it is possible to change all cells in a row base on a value from a cell in that row. 
+```{r}
+table %>% 
+	datatable %>% 
+	formatStyle( 'factor',
+	       fontWeight = "bold",
+		     target = 'row',
+		     color = styleEqual(
+					c("Factor1","Factor2","Factor3","Factor4","Factor5","Factor6"),
+					c("red","green","blue","yellow","orange","purple")
+				      )
+	) %>% 
+  formatPercentage('loading', 0)
+```
 
 
 heatmap
