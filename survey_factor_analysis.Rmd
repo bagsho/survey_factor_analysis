@@ -29,10 +29,6 @@ library(reshape2)
 library(heatmaply)
 library(psych)
 library(magrittr)
-<<<<<<< HEAD
-=======
-library(formattable)
->>>>>>> a9d1ccd101f70d695f068677e9903d72540f2a4a
 library(DT)
 ```
 
@@ -129,33 +125,6 @@ table<-table %>% pivot_longer(!measure, names_to = "factor", values_to = "loadin
 table
 ```
 
-<<<<<<< HEAD
-# table format
-=======
-table format
-```{r}
-
-formattable(table, 
-            align =c("l","c","c"), 
-            list(`factor`= formatter("span",style = x ~ style(
-              font.weight = "bold", 
-              color = 	ifelse(x =="Factor1", "red",
-			      	            ifelse(x== "Factor2", "green",
-				                    ifelse(x== "Factor3", "blue",
-				                      ifelse(x== "Factor4", "yellow",
-				                        ifelse(x== "Factor5","orange",
-				                          ifelse(x== "Factor6", "purple", "black")
-				                        )
-				                      )
-				                    )
-			      	            )
-                  )
-                )
-              )
-            )
-)
-```
->>>>>>> a9d1ccd101f70d695f068677e9903d72540f2a4a
 
 with DT formatStyle function in DT package it is possible to change all cells in a row base on a value from a cell in that row. 
 ```{r}
@@ -166,12 +135,8 @@ table %>%
 		     target = 'row',
 		     color = styleEqual(
 					c("Factor1","Factor2","Factor3","Factor4","Factor5","Factor6"),
-<<<<<<< HEAD
 					c("red","green","#b8860b","blue","orange","purple")
-=======
-					c("red","green","blue","yellow","orange","purple")
->>>>>>> a9d1ccd101f70d695f068677e9903d72540f2a4a
-				      )
+				  )
 	) %>% 
   formatPercentage('loading', 0)
 ```
