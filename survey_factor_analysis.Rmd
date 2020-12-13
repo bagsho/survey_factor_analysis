@@ -29,6 +29,7 @@ library(reshape2)
 library(heatmaply)
 library(psych)
 library(magrittr)
+library(ztable)
 ```
 
 
@@ -107,9 +108,12 @@ matrix2<-cor(data2[1:ncol(data2)],data2[1:ncol(data2)])
 det(matrix2)
 #KMO(matrix2) 25 taneye sonuç veriyor.
 VSS.scree(matrix2, main = "scree plot")
-results<-factanal(data2, 4, rotation="varimax")
-table<-results$loadings[,1:4] %>% as_tibble() %>% mutate(measure=results$loadings[,1:4] %>% row.names) %>%  select(measure, everything())
-table %>% write_excel_csv("results.csv")
+results<-factanal(data2, 6, rotation="varimax")
+table<-results$loadings[,1:6] %>% as_tibble() %>% mutate(measure=results$loadings[,1:6] %>% row.names) %>%  select(measure, everything())
+#table %>% write_excel_csv("results_6.csv")
+table<-table %>% pivot_longer(!measure, names_to = "factor", values_to = "loading") %>% group_by(measure) %>% filter(loading==max(loading)) %>% select(factor,measure,loading) %>% arrange(factor,desc(loading))
+table
+#burada tablonun exceldeki ya da benzeri bir çıktı haline getirilmesi gerekiyor.
 ```
 
 
