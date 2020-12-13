@@ -29,17 +29,14 @@ library(reshape2)
 library(heatmaply)
 library(psych)
 library(magrittr)
-library(ztable)
+library(DT)
 ```
 
 
 ```{r get_data, message=FALSE, warning=FALSE}
-
-
 gs4_deauth()
 link<-"https://docs.google.com/spreadsheets/d/1sXxCzr_EadTeXEK_KSMn5WMHI3UkAvF101pRmfK1yMA/edit?usp=sharing"
 data<-read_sheet(link)
-
 head(data)
 ```
 
@@ -51,24 +48,37 @@ Sample size is `r nrow(data)` and there are `r ncol(data)-2` number of measures 
 create correlation matrix
 ```{r}
 matrix<-cor(data[3:81],data[3:81])
+```
+
+histogram of correlations
+```{r}
 matrix %>% 
   melt %>% 
   mutate(value=abs(value)) %>% 
   filter(value<0.99) %>% 
   ggplot (mapping=aes(x=value)) + 
   geom_histogram(binwidth = 0.1,boundary =1)+ 
-  scale_x_continuous(name="correlation", breaks=seq(0, 1, 0.1),limits = c(0,1)) 
+  scale_x_continuous(name="correlation", breaks=seq(0, 1, 0.1),limits = c(0,1))
 ```
+
+# Is the data suitable for factor analysis?
 
 the measures of factoring adequacy
 or
 whether the matrix is factorable
 
 [ref:](https://cran.r-project.org/web/packages/psych/psych.pdf)
+
+Bartlett test of Sphericity which tests that a correlation matrix is an identity matrix
 ```{r}
 cortest.bartlett(matrix)
+```
+
+Kaiser, Meyer, Olkin Measure of Sampling Adequacy
+```{r}
 KMO(matrix)
 ```
+
 
 determinant is zero so I tried to exclude some variables but it is still 0 after excluding 18 variables.
 ```{r}
@@ -111,11 +121,26 @@ VSS.scree(matrix2, main = "scree plot")
 results<-factanal(data2, 6, rotation="varimax")
 table<-results$loadings[,1:6] %>% as_tibble() %>% mutate(measure=results$loadings[,1:6] %>% row.names) %>%  select(measure, everything())
 #table %>% write_excel_csv("results_6.csv")
-table<-table %>% pivot_longer(!measure, names_to = "factor", values_to = "loading") %>% group_by(measure) %>% filter(loading==max(loading)) %>% select(factor,measure,loading) %>% arrange(factor,desc(loading))
+table<-table %>% pivot_longer(!measure, names_to = "factor", values_to = "loading") %>% group_by(measure) %>% filter(loading==max(loading)) %>% select(measure,factor,loading) %>% arrange(factor,desc(loading))
 table
-#burada tablonun exceldeki ya da benzeri bir çıktı haline getirilmesi gerekiyor.
 ```
 
+# table format
+
+with DT formatStyle function in DT package it is possible to change all cells in a row base on a value from a cell in that row. 
+```{r}
+table %>% 
+	datatable %>% 
+	formatStyle( 'factor',
+	       fontWeight = "bold",
+		     target = 'row',
+		     color = styleEqual(
+					c("Factor1","Factor2","Factor3","Factor4","Factor5","Factor6"),
+					c("red","green","#b8860b","blue","orange","purple")
+				      )
+	) %>% 
+  formatPercentage('loading', 0)
+```
 
 
 heatmap
