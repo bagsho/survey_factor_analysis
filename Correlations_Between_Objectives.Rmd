@@ -1,0 +1,80 @@
+---
+title: 'Correlations Between Objectives'
+author: "[Orhan Aktaş](https://www.linkedin.com/in/orhanaktas/)"
+date: "14 December 2020"
+output:
+  html_document:
+    theme: flatly
+    df_print: paged
+  pdf_document: default
+  word_document: default
+   
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  #fig.width=12, 
+  #fig.height=8, 
+  #fig.path='Figs/',
+  echo=FALSE, 
+  message=FALSE, 
+  warning=FALSE)
+```
+
+```{r libraries}
+library(googlesheets4)
+library(tidyverse)
+library(reshape2)
+library(heatmaply)
+library(psych)
+library(magrittr)
+library(DT)
+library(readxl)
+library(formattable)
+```
+
+
+```{r get_data, message=FALSE, warning=FALSE}
+file<-"C:/Users/user/Desktop/M5 Measures MCA_new_LocalTeam_EBI.xlsx"
+eda_data<-read_excel(file,sheet = "Step1 MCA_rankings") %>% 
+  filter(Number!="B1") %>% 
+  select(c(3:11))
+head(eda_data)
+```
+
+
+create correlation matrix
+```{r}
+eda_matrix<-cor(eda_data,eda_data)
+eda_matrix %>% view
+```
+
+
+
+
+
+formattable
+```{r}
+customGreen0 = "#DeF7E9"
+customGreen = "#71CA97"
+eda_matrix %>% 
+  melt %>% 
+  filter(!value==1) %>% 
+  arrange(Var1,desc(value)) %>% 
+  mutate(value=percent(value,digits = 0)) %>%  
+  formattable(align=c('l','l','r'),list(
+    `value`=formatter("span", 
+                     style = x ~ style(
+                        font.weight = ifelse(x > 0.5,"bold", NA),
+                        color = ifelse(x > 0.5, customGreen, ifelse(x < 0, "red", "navy blue")))),
+    `Var2`=formatter("span", 
+                      style =  ~ style(
+                        font.weight = ifelse(`value` > 0.5,"bold", NA),
+                        color = ifelse(`value` > 0.5, customGreen, ifelse(`value` < 0, "red", "navy blue"))))
+  ))
+
+```
+
+
+
