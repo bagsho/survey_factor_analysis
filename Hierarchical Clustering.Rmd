@@ -1,0 +1,75 @@
+---
+title: 'Hierarchical Clustering'
+author: "[Orhan Aktaş](https://www.linkedin.com/in/orhanaktas/)"
+date: "15 December 2020"
+output:
+  html_document:
+    theme: flatly
+    df_print: paged
+  pdf_document: default
+  word_document: default
+   
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  #fig.width=12, 
+  #fig.height=8, 
+  #fig.path='Figs/',
+  echo=FALSE, 
+  message=FALSE, 
+  warning=FALSE)
+```
+
+```{r libraries, include=FALSE}
+library(tidyverse)
+library(magrittr)
+library(readxl)
+library(DT)
+library(RColorBrewer)
+library(dendextend)
+```
+
+
+In this document, the measures are clustered with hierarchical clustering method. 
+It basically uses the distances that were calculated based on scores that show the contribution of each measure to different objectives. Data used in the study is shown below.
+```{r get_data, message=FALSE, warning=FALSE}
+file<-"C:/Users/user/Desktop/M5 Measures MCA_new_LocalTeam_EBI.xlsx"
+eda_data<-read_excel(file,sheet = "Step1 MCA_rankings") %>% 
+  filter(Number!="B1")
+head(eda_data)
+```
+
+
+# Results
+
+After implementing the method, obtained hierarchical structure is shown below.
+```{r fig.height = 15,fig.width=10}
+dend<- eda_data %>% 
+  #select(c(3:11)) %>% 
+  dist() %>% 
+  hclust() %>% 
+  as.dendrogram() 
+
+# color set
+colors<-brewer.pal(9,"Set1")
+# replace yellow with a darker yellow.
+colors[6]<-"#82824e"
+
+par(mar=c(1,1,1,25))
+dend %>%
+  set_labels(eda_data$Measure) %>% 
+  set("labels_cex", 0.3) %>% 
+  set("labels_col", value = rep(colors,5)[1:27], k=27) %>%
+  set("branches_k_color", value  = rep(colors,5)[1:27], k = 27) %>%
+  set( "labels_cex", 1) %>% 
+  plot(horiz=TRUE, axes=FALSE)
+
+```
+
+
+
+
+
+
