@@ -54,43 +54,25 @@ data<-data %>%
   imap(~mutate(.x,file= .y)) %>% 
   map(select,1,2,file,3:11) %>% 
   bind_rows%>% 
-  mutate_all(~replace(.,.==0,3)) %>% 
   mutate(sum=rowSums(.[4:12]))
 ```
 
 data analysis
 ```{r echo=FALSE}
-data %>% pivot_longer(
-    !c(1:3,"sum"),
-    names_to = "objective",
-    values_to = "scores"
-  ) %>% 
-  group_by(Measure,objective) %>% 
-  summarise( 
-    mean=mean(scores), 
-    sd=sd(scores)) %>% 
-  arrange(desc(sd)) ->sd_data
+voters<-data %>% group_by(file) %>% summarise(n=n()) %>% nrow
 
-sd_data%>% 
-  ggplot()+
-  geom_point(mapping=aes(x=mean,y=sd))
-par(mar=c(1,1,1,25))
-sd_data%>% 
-  mutate(obj_mea=paste(Measure,objective,sep = "")) %>% 
-  ggplot()+
-  geom_col(mapping=aes(x=reorder(obj_mea,sd),y=sd)) +
-  theme(text = element_text(size=5))+
-  coord_flip()
-```
+data_transformed<-data %>% 
+  select(-sum) %>% 
+  pivot_longer(col=c(4:12),names_to = "objective") %>% mutate(value=ifelse(value>3,value,0)) %>% mutate(value=ifelse(is.na(value),0,value)) %>% 
+mutate(value_01=ifelse(value==0,0,1))
 
-sd's of questions based on willem's request. First table shows 10 measures that have highest sd's (sd of sums). The second one goes one step deeper and shows 20 cells that have highest sd's (sd of each measure objective pair). 
-```{r}
-data %>% group_by(Number,Measure) %>% summarise(sd=sd(sum)) %>% arrange(desc(sd)) %>% head(10)
-
-data %>%
-  pivot_longer(col=c(4:12),names_to = "objective") %>% 
-  group_by(Number,Measure,objective) %>% 
-  summarise(sd=sd(value))%>% 
-  arrange(desc(sd)) %>% head(20)
+result<-data_transformed %>% 
+  group_by(Measure) %>% 
+  summarise(sum=sum(value),
+            vote=sum(value_01),
+            "sum/vote"=sum/vote
+            ) %>% 
+  mutate(avg=sum/9/voters) %>% 
+  arrange(desc(sum))
 ```
 
