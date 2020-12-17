@@ -1,0 +1,78 @@
+---
+title: 'survey_results_so_far'
+author: "[Orhan Aktaş](https://www.linkedin.com/in/orhanaktas/)"
+date: "15 December 2020"
+output:
+  html_document:
+    theme: flatly
+    df_print: paged
+  pdf_document: default
+  word_document: default
+   
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  #fig.width=12, 
+  #fig.height=8, 
+  #fig.path='Figs/',
+  echo=FALSE, 
+  message=FALSE, 
+  warning=FALSE)
+```
+
+```{r libraries, include=FALSE}
+library(tidyverse)
+library(magrittr)
+library(readxl)
+library(DT)
+library(RColorBrewer)
+library(dendextend)
+```
+
+```{r}
+
+folder_path<-"C:/danışmanlık/arup/reports/m5/long list/scores/"
+
+# list files
+file_names <- list.files(folder_path)
+
+# file list with paths
+file_paths <- paste(folder_path, file_names, sep = "")
+  
+# import data
+data<-file_paths %>% map(read_excel, 
+    range = "A5:S84",
+    sheet ="Step1 MCA_rankings")
+
+data<-data %>% 
+  map(select,-c(3:10))%>% 
+  set_names(file_names)%>% 
+  map(mutate_at,c(3:11),as.numeric)%>% 
+  #map2(file_names,~mutate(.x,file= .y)) %>% 
+  imap(~mutate(.x,file= .y)) %>% 
+  map(select,1,2,file,3:11) %>% 
+  bind_rows%>% 
+  mutate(sum=rowSums(.[4:12]))
+```
+
+data analysis
+```{r echo=FALSE}
+voters<-data %>% group_by(file) %>% summarise(n=n()) %>% nrow
+
+data_transformed<-data %>% 
+  select(-sum) %>% 
+  pivot_longer(col=c(4:12),names_to = "objective") %>% mutate(value=ifelse(value>3,value,0)) %>% mutate(value=ifelse(is.na(value),0,value)) %>% 
+mutate(value_01=ifelse(value==0,0,1))
+
+result<-data_transformed %>% 
+  group_by(Measure) %>% 
+  summarise(sum=sum(value),
+            vote=sum(value_01),
+            "sum/vote"=sum/vote
+            ) %>% 
+  mutate(avg=sum/9/voters) %>% 
+  arrange(desc(sum))
+```
+
